@@ -46,9 +46,31 @@ You can check that it is successfully added to kubeconfig:
 
 3.1. Create a Role
 
+    kind: Role
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      namespace: default
+      name: read-pods
+    rules:
+    - apiGroups: [""] # “” indicates the core API group
+      resources: ["pods"]
+      verbs: ["get", "watch", "list"]
 
 3.2. Create a BindingRole
 
+    kind: RoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: read-pods
+      namespace: default
+    subjects:
+    - kind: User
+      name: {USER} # Name is case sensitive
+      apiGroup: rbac.authorization.k8s.io
+    roleRef:
+      kind: Role #this must be Role or ClusterRole
+      name: read-pods # must match the name of the Role
+      apiGroup: rbac.authorization.k8s.io
 
 Switched to user default, has permission with administrator:
 
