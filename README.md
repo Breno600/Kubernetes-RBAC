@@ -15,36 +15,26 @@ This an example of how to create user and atach Role:
 1.2. Generate a Client Sign Request (CSR)
    
     openssl req -new -key {USER}.key -out {USER}.csr -subj /CN={USER}/O={GROUP}
+    
+1.3. Create a CertificateSigningRequest
 
-1.3. Generate the certificate (CRT)
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: {USER}
+spec:
+  groups:
+  - system:authenticated
+  request: #Execute this command in terminal $(cat john.csr | base64 | tr -d '\n') and past result here
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - client auth
 
-    openssl x509 -req -in {USER}.csr -CA /var/lib/rancher/k3s/server/tls/server-ca.crt -CAkey /var/lib/rancher/k3s/server/tls/server-ca.key -CAcreateserial -out {USER}.crt -days 7
+1.4. Signing of Certificate
 
-2. Create your User
+    kubectl certificate approve {USER}
 
-2.1. set yout user entry in kubeconfig
-
-    kubectl config set-credentials {USER} --client-certificate={USER}.crt --client-key={USER}.key
-
-2.2. Set a context entry in kubeconfig
-
-    kubectl config set-context {USER} --cluster=default --user={USER}
-
-You can check that it is successfully added to kubeconfig:
-
-    kubectl config view
-
-2.3. Switching to the created user
-
-    kubectl config use-context {USER}
-
-    kubectl config current-context #Check current user
-
-    kubectl create namespace ns-test #Test Permission your User
-
-3. Grant access to the user
-
-3.1. Create a Role
+1.5. Create a Role
 
     kind: Role
     apiVersion: rbac.authorization.k8s.io/v1
@@ -56,7 +46,7 @@ You can check that it is successfully added to kubeconfig:
       resources: ["pods"]
       verbs: ["get", "watch", "list"]
 
-3.2. Create a BindingRole
+1.6. Create a BindingRole
 
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
@@ -72,20 +62,19 @@ You can check that it is successfully added to kubeconfig:
       name: read-pods # must match the name of the Role
       apiGroup: rbac.authorization.k8s.io
 
-Switched to user default, has permission with administrator:
+1.7. Apply files yamls
 
-    kubectl config use-context default
+    kubectl apply -f .
+    
+1.8. Set Credential 
 
-Apply your Role and RoleBinding:
+    kubectl config set-credentials john --client-key={USER}.key --client-certificate={USER}.crt --embed-certs=true
 
-    kubectl apply -f role.yaml role-binding.yaml
+1.9. Set Context user created
 
-We check that the Role and BindingRole was created successfully:
+    kubectl config set-context {USER}
 
-    kubectl get roles
-    kubectl get rolebindings
-
-Testing the allowed operations for user
+1.9. Testing the allowed operations for user
 
     kubectl config use-context {USER}
     kubectl create namespace test # won't succeed, Forbidden
