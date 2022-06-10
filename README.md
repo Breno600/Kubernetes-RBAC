@@ -66,17 +66,20 @@ This an example of how to create user and atach Role:
 
     kubectl apply -f .
     
-1.8. Set Credential 
+1.8. Create CRT 
+
+    openssl x509 -req -in erik.csr -CA /var/lib/rancher/k3s/server/tls/server-ca.crt -CAkey /var/lib/rancher/k3s/server/tls/server-ca.key -CAcreateserial -out erik.crt -days 10
+
+1.9. Set Credential 
 
     kubectl config set-credentials john --client-key={USER}.key --client-certificate={USER}.crt --embed-certs=true
 
-1.9. Set Context user created
+1.10. Set Context user created
 
     kubectl config set-context {USER}
 
-1.9. Testing the allowed operations for user
+1.11. Testing the allowed operations for user
 
     kubectl config use-context {USER}
     kubectl create namespace test # won't succeed, Forbidden
     kubectl get pods # this will succeed !
-
