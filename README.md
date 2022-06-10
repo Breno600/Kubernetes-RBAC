@@ -85,7 +85,7 @@ We check that the Role and BindingRole was created successfully:
     kubectl get roles
     kubectl get rolebindings
 
-4. Testing the allowed operations for user
+Testing the allowed operations for user
 
     kubectl config use-context {USER}
     kubectl create namespace test # won't succeed, Forbidden
