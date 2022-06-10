@@ -18,17 +18,17 @@ This an example of how to create user and atach Role:
     
 1.3. Create a CertificateSigningRequest
 
-apiVersion: certificates.k8s.io/v1
-kind: CertificateSigningRequest
-metadata:
-  name: {USER}
-spec:
-  groups:
-  - system:authenticated
-  request: #Execute this command in terminal $(cat john.csr | base64 | tr -d '\n') and past result here
-  signerName: kubernetes.io/kube-apiserver-client
-  usages:
-  - client auth
+    apiVersion: certificates.k8s.io/v1
+    kind: CertificateSigningRequest
+    metadata:
+      name: {USER}
+    spec:
+      groups:
+      - system:authenticated
+      request: #Execute this command in terminal $(cat john.csr | base64 | tr -d '\n') and past result here
+      signerName: kubernetes.io/kube-apiserver-client
+      usages:
+      - client auth
 
 1.4. Signing of Certificate
 
