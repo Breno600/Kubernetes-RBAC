@@ -31,7 +31,8 @@ This an example of how to create user and atach Role:
     
 7. Now you should get access denied error when using kubectl CLI with this configuration file as we have not defined yet any permitted operations for this user. Try ``` kubectl --context=robel-context get pods ```Create the role for managing deployments
 
-    ```kind: Role
+    ```bash
+    kind: Role
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
       namespace: developers
@@ -39,11 +40,13 @@ This an example of how to create user and atach Role:
     rules:
       - apiGroups: ["", "extensions", "apps"]
         resources: ["deployments", "replicaset", "pods", "*/log", "services", "endpoints"]
-        verbs: ["get", "list", "watch", "patch", "update"] # You can also use ["*"]```
+        verbs: ["get", "list", "watch", "patch", "update"] # You can also use ["*"]
+        ```
         
 8. Bind the role to the robel user
 
-    ```kind: RoleBinding
+    ```bash
+    kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
       namespace: developers
@@ -55,7 +58,8 @@ This an example of how to create user and atach Role:
     roleRef:
        kind: Role
        name: role-manager
-       apiGroup: ""```
+       apiGroup: ""
+    ```
        
 9. Apply files .yaml
 
@@ -66,4 +70,5 @@ This an example of how to create user and atach Role:
     ```bash
     kubectl --context={USER}-context run --image=nginx nginx
     kubectl --context={USER}-context get pods
-    kubectl --context={USER}-context get svc```
+    kubectl --context={USER}-context get svc
+    ```
