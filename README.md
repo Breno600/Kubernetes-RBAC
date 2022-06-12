@@ -29,7 +29,7 @@ This an example of how to create user and atach Role:
     ```kubectl config set-credentials {USER} --client-certificate={USER}.crt --client-key={USER}.key```
     ```kubectl config set-context {USER}-context --cluster={NAME_CLUSTER} --namespace=developers --user={USER}```
     
-7. Now you should get access denied error when using kubectl CLI with this configuration file as we have not defined yet any permitted operations for this user. Try kubectl --context=robel-context get pods Create the role for managing deployments
+7. Now you should get access denied error when using kubectl CLI with this configuration file as we have not defined yet any permitted operations for this user. Try ``` kubectl --context=robel-context get pods ```Create the role for managing deployments
 
     ```kind: Role
     apiVersion: rbac.authorization.k8s.io/v1
