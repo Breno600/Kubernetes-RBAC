@@ -63,6 +63,6 @@ This an example of how to create user and atach Role:
     
 10. Test the RBAC rule
 
-    ```kubectl --context={USER}-context run --image=nginx nginx
-    kubectl --context={USER}-context get pods
-    kubectl --context={USER}-context get svc```
+    ```kubectl --context={USER}-context run --image=nginx nginx```
+    ```kubectl --context={USER}-context get pods```
+    ```kubectl --context={USER}-context get svc```
