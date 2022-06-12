@@ -6,80 +6,63 @@ This an example of how to create user and atach Role:
 
 1. Create a client certificate
 
-    mkdir cert && cd cert
+    mkdir certs && cd certs
 
-1.1. Generate a key using OpenSSL
+2. Create a namespace
+
+    kubectl create ns developers
+
+3. Create a private key for your user
 
     openssl genrsa -out {USER}.key 2048
-
-1.2. Generate a Client Sign Request (CSR)
-   
-    openssl req -new -key {USER}.key -out {USER}.csr -subj /CN={USER}/O={GROUP}
     
-1.3. Create a CertificateSigningRequest
+4. Create a certificate sign request employee.csr using the private key you just created (robel.key in this example). Make sure you specify your username and group in the -subj section 
 
-    apiVersion: certificates.k8s.io/v1
-    kind: CertificateSigningRequest
-    metadata:
-      name: {USER}
-    spec:
-      groups:
-      - system:authenticated
-      request: #Execute this command in terminal $(cat john.csr | base64 | tr -d '\n') and past result here
-      signerName: kubernetes.io/kube-apiserver-client
-      usages:
-      - client auth
+    openssl req -new -key {USER}.key -out {USER}.csr -subj "/CN={USER}/O=developers"
 
-1.4. Signing of Certificate
+5. Generate the final certificate by approving the certificate signing request
 
-    kubectl certificate approve {USER}
+    openssl x509 -req -in {USER}.csr -CA /var/lib/rancher/k3s/server/tls/client-ca.crt -CAkey /var/lib/rancher/k3s/server/tls/client-ca.key -CAcreateserial -out {USER}.crt -days 7
+    
+6. Add a new context with the new credentials for your k8s cluster
 
-1.5. Create a Role
+    kubectl config set-credentials {USER} --client-certificate={USER}.crt --client-key={USER}.key
+    kubectl config set-context {USER}-context --cluster={NAME_CLUSTER} --namespace=developers --user={USER}
+    
+7. Now you should get access denied error when using kubectl CLI with this configuration file as we have not defined yet any permitted operations for this user. Try kubectl --context=robel-context get pods Create the role for managing deployments
 
     kind: Role
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      namespace: default
-      name: read-pods
+      namespace: developers
+      name: role-manager
     rules:
-    - apiGroups: [""] # “” indicates the core API group
-      resources: ["pods"]
-      verbs: ["get", "watch", "list"]
-
-1.6. Create a BindingRole
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["deployments", "replicaset", "pods", "*/log", "services", "endpoints"]
+        verbs: ["get", "list", "watch", "patch", "update"] # You can also use ["*"]
+        
+8. Bind the role to the robel user
 
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      name: read-pods
-      namespace: default
+      namespace: developers
+      name: role-manager-binding
     subjects:
-    - kind: User
-      name: {USER} # Name is case sensitive
-      apiGroup: rbac.authorization.k8s.io
+      - kind: User
+        name: {USER}
+        apiGroup: ""
     roleRef:
-      kind: Role #this must be Role or ClusterRole
-      name: read-pods # must match the name of the Role
-      apiGroup: rbac.authorization.k8s.io
-
-1.7. Apply files yamls
+       kind: Role
+       name: role-manager
+       apiGroup: ""
+       
+9. Apply files .yaml
 
     kubectl apply -f .
     
-1.8. Create CRT 
+10. Test the RBAC rule
 
-    openssl x509 -req -in erik.csr -CA /var/lib/rancher/k3s/server/tls/server-ca.crt -CAkey /var/lib/rancher/k3s/server/tls/server-ca.key -CAcreateserial -out erik.crt -days 10
-
-1.9. Set Credential 
-
-    kubectl config set-credentials john --client-key={USER}.key --client-certificate={USER}.crt --embed-certs=true
-
-1.10. Set Context user created
-
-    kubectl config set-context {USER}
-
-1.11. Testing the allowed operations for user
-
-    kubectl config use-context {USER}
-    kubectl create namespace test # won't succeed, Forbidden
-    kubectl get pods # this will succeed !
+    kubectl --context={USER}-context run --image=nginx nginx
+    kubectl --context={USER}-context get pods
+    kubectl --context={USER}-context get svc
